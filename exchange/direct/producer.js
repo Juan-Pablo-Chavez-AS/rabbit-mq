@@ -8,11 +8,13 @@ createConnection()
 
     const exchange = 'direct_logs'
 
-    ch.assertExchange(exchange, 'direct', { durable: false })
+    ch.assertExchange(exchange, 'direct', { durable: true })
 
     setInterval(() => {
       const severity = sample(['critical', 'info', 'warning'])
       console.log(' [x] Sending message [%s]', severity)
-      ch.publish(exchange, severity, Buffer.from('Hello World!'))
+      ch.assertQueue(exchange, severity, Buffer.from('Hello World!')).then((q) => {
+        ch.sendToQueue(q.queue)
+      })
     }, 1000)
   })

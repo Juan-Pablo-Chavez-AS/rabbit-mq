@@ -5,14 +5,23 @@ createConnection()
   .then(ch => {
     console.log('Channel created!')
 
+    const queue = 'MessageQ'
     const exchange = 'logs'
-    ch.assertExchange(exchange, 'fanout', { durable: false })
+    const exchangeOptions = { durable: true }
 
-    setInterval(() => {
-      console.log(' [x] %s - Sending message', new Date())
-      // The empty string as second parameter means
-      // that we don't want to send the message to any specific queue.
-      // We want only to publish it to our 'logs' exchange.
-      ch.publish(exchange, '', Buffer.from('Hello World!'))
-    }, 1000)
+    ch.assertExchange(exchange, 'fanout', exchangeOptions)
+      .then(() => {
+        console.log(`Exchange '${exchange}' recreated with durability.`)
+
+        setInterval(() => {
+          console.log(' [x] %s - Sending message', new Date())
+          ch.publish(exchange, queue, Buffer.from('Fanout message!'))
+        }, 5000)
+      })
+      .catch(err => {
+        console.error('Error:', err)
+      })
+  })
+  .catch(err => {
+    console.error('Connection error:', err)
   })

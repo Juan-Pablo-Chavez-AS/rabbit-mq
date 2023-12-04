@@ -6,11 +6,11 @@ createConnection()
     console.log('Channel created!')
 
     const exchange = 'direct_logs'
-    ch.assertExchange(exchange, 'direct', { durable: false })
+    ch.assertExchange(exchange, 'direct', { durable: true })
 
     // When we supply wueue name as an empty string, we create a non-durable queue
     // with a generated name
-    ch.assertQueue('', { exclusive: true })
+    ch.assertQueue('MessageQ', { exclusive: true })
       .then(q => {
         console.log(' [*] Waiting for messages in %s.', q.queue)
         // Binding all routingKey
