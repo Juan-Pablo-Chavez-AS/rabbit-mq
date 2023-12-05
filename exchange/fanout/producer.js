@@ -3,24 +3,21 @@ const { createConnection } = require('../../connection')
 createConnection()
   .then(conn => conn.createChannel())
   .then(ch => {
-    console.log('Channel created!')
+    console.log('Producer channel created!')
 
-    const queue = 'MessageQ'
-    const exchange = 'logs'
-    const exchangeOptions = { durable: true }
+    const exchange = 'my_fanout_exchange'
 
-    ch.assertExchange(exchange, 'fanout', exchangeOptions)
-      .then(() => {
-        console.log(`Exchange '${exchange}' recreated with durability.`)
+    // Assert the fanout exchange
+    ch.assertExchange(exchange, 'fanout', { durable: true })
 
-        setInterval(() => {
-          console.log(' [x] %s - Sending message', new Date())
-          ch.publish(exchange, queue, Buffer.from('Fanout message!'))
-        }, 5000)
-      })
-      .catch(err => {
-        console.error('Error:', err)
-      })
+    // Message to be sent
+    const message = 'Hello, this is a fanout message from the producer!'
+
+    // Close the channel and the connection
+    setInterval(() => {
+      ch.publish(exchange, '', Buffer.from(message))
+      console.log(`Message sent to fanout exchange '${exchange}': ${message}`)
+    }, 1000) // Adjust the time here (in milliseconds) as per your requirement
   })
   .catch(err => {
     console.error('Connection error:', err)

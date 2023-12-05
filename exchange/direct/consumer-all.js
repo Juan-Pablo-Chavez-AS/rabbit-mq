@@ -10,7 +10,7 @@ createConnection()
 
     // When we supply wueue name as an empty string, we create a non-durable queue
     // with a generated name
-    ch.assertQueue('MessageQ', { exclusive: true })
+    ch.assertQueue(exchange)
       .then(q => {
         console.log(' [*] Waiting for messages in %s.', q.queue)
         // Binding all routingKey

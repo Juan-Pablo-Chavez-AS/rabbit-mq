@@ -13,8 +13,9 @@ createConnection()
     setInterval(() => {
       const severity = sample(['critical', 'info', 'warning'])
       console.log(' [x] Sending message [%s]', severity)
-      ch.assertQueue(exchange, severity, Buffer.from('Hello World!')).then((q) => {
-        ch.sendToQueue(q.queue)
-      })
+      ch.assertQueue(exchange, { durable: true })
+        .then((q) => {
+          ch.sendToQueue(q.queue, Buffer.from('Hello World!'))
+        })
     }, 1000)
   })

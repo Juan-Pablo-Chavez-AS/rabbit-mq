@@ -3,25 +3,33 @@ const { createConnection } = require('../../connection')
 createConnection()
   .then(conn => conn.createChannel())
   .then(ch => {
-    console.log('Channel created!')
+    console.log('Consumer channel created!')
 
-    const queue = 'MessageQ'
-    const exchange = 'logs'
+    const exchange = 'my_fanout_exchange'
+    const queue = 'my_queue'
+
+    // Assert the fanout exchange
     ch.assertExchange(exchange, 'fanout', { durable: true })
 
-    // When we supply queue name as an empty string, we create a non-durable queue
-    // with a generated name
-    ch.assertQueue(queue, { exclusive: true })
-      .then(q => {
-        console.log(' [*] Waiting for messages in %s.', q.queue)
-        ch.bindQueue(q.queue, exchange, '')
+    // Assert the queue and bind it to the fanout exchange
+    ch.assertQueue(queue, { durable: true })
+      .then(() => {
+        ch.bindQueue(queue, exchange, '')
+        console.log(`Queue '${queue}' bound to exchange '${exchange}'`)
 
-        ch.consume(q.queue, (msg) => {
+        // Start consuming messages from the queue
+        ch.consume(queue, (msg) => {
           if (msg !== null) {
-            console.log(' [x] %s', msg.content.toString())
+            console.log(`Received message: ${msg.content.toString()}`)
+            // Acknowledge the message to inform RabbitMQ that it has been processed
+            ch.ack(msg)
           }
-        }, {
-          noAck: true
         })
       })
+      .catch(err => {
+        console.error('Queue assertion error:', err)
+      })
+  })
+  .catch(err => {
+    console.error('Connection error:', err)
   })
